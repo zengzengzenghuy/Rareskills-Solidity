@@ -46,8 +46,8 @@ contract BondingCurveToken is BancorFormula, ERC20 {
         );
 
         _mint(msg.sender, tokenAmount);
-        approve(address(this), tokenAmount);
-        transferFrom(msg.sender, address(this), amountToPay);
+        //ReserveToken.approve(address(this), amountToPay);
+        ReserveToken.transferFrom(msg.sender, address(this), amountToPay);
         reserveAmount += amountToPay;
         emit BondingCurveTokenMinted(msg.sender, tokenAmount, amountToPay);
         lastBuyTime[msg.sender] = block.timestamp;
@@ -66,7 +66,7 @@ contract BondingCurveToken is BancorFormula, ERC20 {
         );
 
         _burn(msg.sender, amountToSell);
-        transfer(msg.sender, tokenAmount);
+        ReserveToken.transfer(msg.sender, tokenAmount);
         reserveAmount -= tokenAmount;
         emit BondingCurveTokenSold(msg.sender, amountToSell, tokenAmount);
     }
@@ -75,10 +75,10 @@ contract BondingCurveToken is BancorFormula, ERC20 {
         address to,
         uint256 value
     ) public override returns (bool) {
-        require(
-            block.timestamp >= lastBuyTime[msg.sender] + COOLDOWNTIME,
-            "must wait for cool down time before transferring!"
-        );
+        // require(
+        //     block.timestamp >= lastBuyTime[msg.sender] + COOLDOWNTIME,
+        //     "must wait for cool down time before transferring!"
+        // );
         super.transfer(to, value);
         return true;
     }
@@ -88,10 +88,10 @@ contract BondingCurveToken is BancorFormula, ERC20 {
         address to,
         uint256 value
     ) public override returns (bool) {
-        require(
-            block.timestamp >= lastBuyTime[msg.sender] + COOLDOWNTIME,
-            "must wait for cool down time before transferring!"
-        );
+        // require(
+        //     block.timestamp >= lastBuyTime[msg.sender] + COOLDOWNTIME,
+        //     "must wait for cool down time before transferring!"
+        // );
         super.transferFrom(from, to, value);
         return true;
     }

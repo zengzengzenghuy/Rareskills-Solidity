@@ -16,3 +16,6 @@
 [submodule "week2-erc721/smart_contract_2/lib/openzeppelin-contracts"]
 	path = week2-erc721/smart_contract_2/lib/openzeppelin-contracts
 	url = https://github.com/Openzeppelin/openzeppelin-contracts
+[submodule "week1-bonding-curves/contracts/lib/erc1363-payable-token"]
+	path = week1-bonding-curves/contracts/lib/erc1363-payable-token
+	url = https://github.com/vittominacori/erc1363-payable-token
