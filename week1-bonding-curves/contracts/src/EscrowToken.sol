@@ -84,18 +84,24 @@ interface ERC1363Spender {
     ) external returns (bytes4);
 }
 
+/// @title EscrowToken contract allows buyer to deposit token and buyer to withdraw token
+/// @author zeng
+/// @notice Buyer can deposit token into the contract and seller can withdraw token 3 days later
+/// @dev buyer opens deal when depositToken() is called, seller closes deal when withdrawToken() is called
+/// @dev Can receive 3 kinds of ERC20 token: ERC20, ERC777, ERC1363
 contract EscrowToken is
     ERC777TokensRecipient,
     ERC777TokensSender,
     ERC1363Receiver
 {
-    // allows different standard of ERC20
-    // ERC777
-    // ERC1363
-    // check if this contract has allowance from buyer
-    // check time is 3 days
-    // check if approve or transfer
 
+    IERC20 erc20;
+    ERC777 erc777;
+    IERC1363 erc1363;
+    mapping(address buyer => mapping(address seller => Deal deal)) dealDetails;
+    error UnsupportedTokenType();
+
+    
     struct Deal {
         uint256 amount;
         uint256 depositTime;
@@ -114,13 +120,14 @@ contract EscrowToken is
         uint256 amount,
         uint256 time
     );
-    IERC20 erc20;
-    ERC777 erc777;
-    IERC1363 erc1363;
-    mapping(address buyer => mapping(address seller => Deal deal)) dealDetails;
-    error UnsupportedTokenType();
+  
 
-    // TODO: use ERC1820 registry to check the token standard
+  /// @notice buyer deposit token into contract and open a deal with seller
+  /// @dev depositToken is called by buyer with `amount` of token locked into this contract
+  /// @param seller the address that can withdraw the token from the contract w.r.t the buyer's deposit
+  /// @param amount amount of token buyer wants to deposit
+  /// @param token ERC20 token address of the deposit token
+  /// @param tokenType ERC20 token type: 0: ERC20, 1: ERC777, 2: ERC1363
     function depositToken(
         address seller,
         uint256 amount,
@@ -165,38 +172,40 @@ contract EscrowToken is
         }
     }
 
-    /// called by ERC777 receiver
+    /// @notice token receive hook called by ERC777 token contract
     function tokensReceived(
-        address operator,
+        address /*operator*/,
         address from,
         address to,
         uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
+        bytes calldata /*data*/,
+        bytes calldata /*operatorData*/
     ) external {
         require(amount != 0, "empty amount!");
         require(from != address(0), "invalid from address");
         require(to != address(0), "invalid receipient address");
     }
 
+    /// @notice token send hook called by ERC777 contract
     function tokensToSend(
-        address operator,
+        address /*operator*/,
         address from,
         address to,
         uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData
+        bytes calldata /*userData*/,
+        bytes calldata /*operatorData*/
     ) external {
         require(amount != 0, "empty amount!");
         require(from != address(0), "invalid from address");
         require(to != address(0), "invalid receipient address");
     }
 
+    /// @notice receive hook called by ERC1363 token
     function onTransferReceived(
-        address operator,
+        address /*operator*/,
         address from,
         uint256 value,
-        bytes memory data
+        bytes memory /*data*/
     ) external returns (bytes4) {
         require(value != 0, "empty amount!");
         require(from != address(0), "invalid from address");
@@ -207,17 +216,22 @@ contract EscrowToken is
             );
     }
 
+    /// @notice approval received hook called by ERC1363 token contract
     function onApprovalReceived(
         address owner,
         uint256 value,
-        bytes memory data
+        bytes memory /*data*/
     ) external returns (bytes4) {
         require(value != 0, "empty amount!");
         require(owner != address(0), "invalid owner address");
         return bytes4(keccak256("onApprovalReceived(address,uint256,bytes)"));
     }
+   
 
-    function withdrawToken(address buyer) public {
+    /// @notice seller call this function to withdraw token w.r.t the buyer
+    /// @dev seller has to wait for 3 days before withdrawing token
+    /// @param buyer buyer address from the deal
+    function withdrawToken(address buyer) external {
         uint256 tokenToWithdraw = dealDetails[buyer][msg.sender].amount;
         address token = dealDetails[buyer][msg.sender].token;
         require(tokenToWithdraw != 0, "No deal!");

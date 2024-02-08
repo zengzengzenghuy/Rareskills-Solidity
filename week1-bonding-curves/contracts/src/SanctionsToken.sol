@@ -6,6 +6,10 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title SanctionsToken is a fungile token that allows an admin to ban specified addresses from sending and receiving tokens.
+/// @author zeng
+/// @notice Blacklisted addresses cannot send or receive token
+/// @dev Inherit ERC20 with admin role to ban specified addresses to send or receive token
 contract SanctionsToken is ERC20 {
     using SafeERC20 for ERC20;
     address private _admin;
@@ -16,6 +20,11 @@ contract SanctionsToken is ERC20 {
     event AdminSet(address indexed newAdmin);
     event AddressBlacklisted(address indexed blackListedAddress);
 
+  modifier onlyAdmin() {
+        require(msg.sender == _admin, "msg.sender is not admin");
+        _;
+    }
+
     constructor(
         string memory name_,
         string memory symbol_,
@@ -24,11 +33,10 @@ contract SanctionsToken is ERC20 {
         _admin = admin_;
     }
 
-    modifier onlyAdmin() {
-        require(msg.sender == _admin, "msg.sender is not admin");
-        _;
-    }
-
+  
+  /// @notice set admin
+  /// @dev set new admin, only can be set by admin
+  /// @param admin new admin address
     function setAdmin(address admin) external onlyAdmin {
         require(admin != address(0), "invalid address");
         require(admin != _admin, "duplicate admin address");
@@ -37,6 +45,9 @@ contract SanctionsToken is ERC20 {
         _admin = admin;
     }
 
+/// @notice blacklist addresses
+/// @dev set blacklisted addresses, only can be set by admin
+/// @param blackListAddress_ an array of blacklist addresses
     function blackListaddress(
         address[] calldata blackListAddress_
     ) external onlyAdmin {
@@ -50,38 +61,59 @@ contract SanctionsToken is ERC20 {
         }
     }
 
+/// @notice mint token to account
+/// @dev mint `amount` of token to `account`, only can mint by admin
+/// @param account account to mint to
+/// @param amount amount of token to mint to the account
+   function mint(address account, uint256 amount) external onlyAdmin {
+        require(account != address(0), "cannot mint to 0 address");
+        require(amount != 0, "mint nothing");
+        _mint(account, amount);
+    }
+
+
+/// @notice burn token from account
+/// @dev burn `amount` of token from `account`, only can burn by admin
+/// @param account account to burn from
+/// @param amount amount of token to burn from the account
+    function burn(address account, uint256 amount) external onlyAdmin {
+        require(account != address(0), "cannot mint to 0 address");
+        require(amount != 0, "mint nothing");
+        _burn(account, amount);
+    }
+
+    /// @notice transfer token to account
+    /// @dev transfer `amount` of token to `to`
+    /// @param to address to transfer to
+    /// @param amount amount of token to transfer to
+    /// @return indicate whether the transfer is success or fail
     function transfer(
         address to,
-        uint256 value
+        uint256 amount
     ) public override returns (bool) {
         require(
             !_isBlackListedAddress[msg.sender],
             "msg.sender is blacklisted"
         );
         require(!_isBlackListedAddress[to], "recipient is blacklisted");
-        return super.transfer(to, value);
+        return super.transfer(to, amount);
     }
 
+    /// @notice transfer token `from` to `to`
+    /// @param from address to transfer from
+    /// @param to address to transfer to
+    /// @param amount amount of token to transfer from `from` to `to`
+    /// @return indicate whether the transferFrom is success or fail
     function transferFrom(
         address from,
         address to,
-        uint256 value
+        uint256 amount
     ) public override returns (bool) {
         require(!_isBlackListedAddress[from], "msg.sender is blacklisted");
         require(!_isBlackListedAddress[to], "recipient is blacklisted");
 
-        return super.transferFrom(from, to, value);
+        return super.transferFrom(from, to, amount);
     }
 
-    function mint(address account, uint256 amount) external onlyAdmin {
-        require(account != address(0), "cannot mint to 0 address");
-        require(amount != 0, "mint nothing");
-        _mint(account, amount);
-    }
-
-    function burn(address account, uint256 amount) external onlyAdmin {
-        require(account != address(0), "cannot mint to 0 address");
-        require(amount != 0, "mint nothing");
-        _burn(account, amount);
-    }
+ 
 }
