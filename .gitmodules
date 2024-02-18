@@ -19,3 +19,6 @@
 [submodule "week1-bonding-curves/contracts/lib/erc1363-payable-token"]
 	path = week1-bonding-curves/contracts/lib/erc1363-payable-token
 	url = https://github.com/vittominacori/erc1363-payable-token
+[submodule "week3-uniswapv2/lib/forge-std"]
+	path = week3-uniswapv2/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
