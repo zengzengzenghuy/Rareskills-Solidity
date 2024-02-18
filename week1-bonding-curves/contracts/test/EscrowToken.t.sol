@@ -41,15 +41,10 @@ contract EscrowTokenTest is Test {
         uint256 mintAmount = 100;
         erc20.mint(buyer, mintAmount);
         erc777Mock.mint(buyer, mintAmount);
-        // erc1363Mock.mint(buyer, mintAmount);
+
     }
 
-    // function testInitialAmount() public {
-    //     uint256 mintAmount = 100;
-    //     assertEq(erc20.balanceOf(buyer), mintAmount);
-    //     assertEq(erc777Mock.balanceOf(buyer), mintAmount);
-    //     assertEq(erc1363Mock.balanceOf(buyer), mintAmount);
-    // }
+
 
     function testERC20DepositAndWithdraw() public {
         uint256 depositAmount = 10;
@@ -98,7 +93,6 @@ contract EscrowTokenTest is Test {
         );
     }
 
-    //TODO: test with ERC777 and ERC1363 token
 
     function testERC777DepositAndWithdraw() public {
         uint256 depositAmount = 10;
@@ -182,6 +176,8 @@ contract EscrowTokenTest is Test {
             address(escrowToken)
         );
         assertEq(buyerBalanceBefore, depositAmount);
+
+
         vm.startPrank(address(buyer));
         erc777Mock.approve(address(escrowToken), depositAmount);
 
@@ -199,6 +195,8 @@ contract EscrowTokenTest is Test {
         );
 
         vm.stopPrank();
+
+
         // test withdraw within 3 days;
         vm.warp(depositTimestamp + 1 days);
         vm.prank(address(seller));
@@ -233,6 +231,7 @@ contract EscrowTokenTest is Test {
         ERC1363UserMock seller = new ERC1363UserMock();
 
         erc1363Mock.mint(address(buyer), depositAmount);
+        
         uint256 depositTimestamp = block.timestamp;
         uint256 buyerBalanceBefore = erc1363Mock.balanceOf(address(buyer));
         uint256 sellerBalanceBefore = erc1363Mock.balanceOf(address(seller));

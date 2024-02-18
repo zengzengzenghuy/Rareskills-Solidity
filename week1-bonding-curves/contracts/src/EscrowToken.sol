@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {ERC777} from "@openzeppelin/contracts/token/ERC777/ERC777.sol";
 import {IERC1363} from "@vittominacori/erc1363/contracts/token/ERC1363/IERC1363.sol";
-import {IERC1363Spender} from "@vittominacori/erc1363/contracts/token/ERC1363/IERC1363Spender.sol";
-import {IERC1363Receiver} from "@vittominacori/erc1363/contracts/token/ERC1363/IERC1363Receiver.sol";
 
 interface ERC777TokensSender {
     function tokensToSend(
@@ -30,26 +28,6 @@ interface ERC777TokensRecipient {
 }
 
 interface ERC1363Receiver {
-    /*
-     * Note: the ERC-165 identifier for this interface is 0x88a7ca5c.
-     * 0x88a7ca5c === bytes4(keccak256("onTransferReceived(address,address,uint256,bytes)"))
-     */
-
-    /**
-     * @notice Handle the receipt of ERC1363 tokens
-     * @dev Any ERC1363 smart contract calls this function on the recipient
-     * after a `transfer` or a `transferFrom`. This function MAY throw to revert and reject the
-     * transfer. Return of other than the magic value MUST result in the
-     * transaction being reverted.
-     * Note: the token contract address is always the message sender.
-     * @param operator address The address which called `transferAndCall` or `transferFromAndCall` function
-     * @param from address The address which are token transferred from
-     * @param value uint256 The amount of tokens transferred
-     * @param data bytes Additional data with no specified format
-     * @return `bytes4(keccak256("onTransferReceived(address,address,uint256,bytes)"))`
-     *  unless throwing
-     */
-
     function onTransferReceived(
         address operator,
         address from,
@@ -59,24 +37,6 @@ interface ERC1363Receiver {
 }
 
 interface ERC1363Spender {
-    /*
-     * Note: the ERC-165 identifier for this interface is 0x7b04a2d0.
-     * 0x7b04a2d0 === bytes4(keccak256("onApprovalReceived(address,uint256,bytes)"))
-     */
-
-    /**
-     * @notice Handle the approval of ERC1363 tokens
-     * @dev Any ERC1363 smart contract calls this function on the recipient
-     * after an `approve`. This function MAY throw to revert and reject the
-     * approval. Return of other than the magic value MUST result in the
-     * transaction being reverted.
-     * Note: the token contract address is always the message sender.
-     * @param owner address The address which called `approveAndCall` function
-     * @param value uint256 The amount of tokens to be spent
-     * @param data bytes Additional data with no specified format
-     * @return `bytes4(keccak256("onApprovalReceived(address,uint256,bytes)"))`
-     *  unless throwing
-     */
     function onApprovalReceived(
         address owner,
         uint256 value,
@@ -84,10 +44,15 @@ interface ERC1363Spender {
     ) external returns (bytes4);
 }
 
+/// @title A title that should describe the contract/interface
+/// @author The name of the author
+/// @notice Explain to an end user what this does
+/// @dev Explain to a developer any extra details
 contract EscrowToken is
     ERC777TokensRecipient,
     ERC777TokensSender,
-    ERC1363Receiver
+    ERC1363Receiver,
+    ERC1363Spender
 {
     // allows different standard of ERC20
     // ERC777
@@ -95,6 +60,13 @@ contract EscrowToken is
     // check if this contract has allowance from buyer
     // check time is 3 days
     // check if approve or transfer
+
+    IERC20 erc20;
+    ERC777 erc777;
+    IERC1363 erc1363;
+
+    mapping(address buyer => mapping(address seller => Deal deal)) dealDetails;
+    error UnsupportedTokenType();
 
     struct Deal {
         uint256 amount;
@@ -114,19 +86,23 @@ contract EscrowToken is
         uint256 amount,
         uint256 time
     );
-    IERC20 erc20;
-    ERC777 erc777;
-    IERC1363 erc1363;
-    mapping(address buyer => mapping(address seller => Deal deal)) dealDetails;
-    error UnsupportedTokenType();
 
-    // TODO: use ERC1820 registry to check the token standard
+    /// @notice deposit token from buyer
+    /// @dev call different type of transfer based on token type
+    /// @param seller the seller that buyer(msg.sender) want to buy from
+    /// @param amount amount of token to deposit
+    /// @param token token address
+    /// @param tokenType tokenType: 0 = ERC20, 1 = ERC777, 2 = ERC1363
     function depositToken(
         address seller,
         uint256 amount,
         address token,
         uint8 tokenType
-    ) public {
+    ) external {
+        require(seller != address(0), "invalid seller address");
+        require(amount != 0, "amount cannot be 0");
+        require(token != address(0), "invalid token address");
+
         if (tokenType == 0) {
             erc20 = IERC20(token);
             erc20.transferFrom(msg.sender, address(this), amount);
@@ -165,59 +141,10 @@ contract EscrowToken is
         }
     }
 
-    /// called by ERC777 receiver
-    function tokensReceived(
-        address operator,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external {
-        require(amount != 0, "empty amount!");
-        require(from != address(0), "invalid from address");
-        require(to != address(0), "invalid receipient address");
-    }
-
-    function tokensToSend(
-        address operator,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData
-    ) external {
-        require(amount != 0, "empty amount!");
-        require(from != address(0), "invalid from address");
-        require(to != address(0), "invalid receipient address");
-    }
-
-    function onTransferReceived(
-        address operator,
-        address from,
-        uint256 value,
-        bytes memory data
-    ) external returns (bytes4) {
-        require(value != 0, "empty amount!");
-        require(from != address(0), "invalid from address");
-
-        return
-            bytes4(
-                keccak256("onTransferReceived(address,address,uint256,bytes)")
-            );
-    }
-
-    function onApprovalReceived(
-        address owner,
-        uint256 value,
-        bytes memory data
-    ) external returns (bytes4) {
-        require(value != 0, "empty amount!");
-        require(owner != address(0), "invalid owner address");
-        return bytes4(keccak256("onApprovalReceived(address,uint256,bytes)"));
-    }
-
-    function withdrawToken(address buyer) public {
+    /// @notice withdraw token from buyer
+    /// @dev seller withdraw token deposited from buyer, only called by valid seller
+    /// @param buyer buyer from the deal
+    function withdrawToken(address buyer) external {
         uint256 tokenToWithdraw = dealDetails[buyer][msg.sender].amount;
         address token = dealDetails[buyer][msg.sender].token;
         require(tokenToWithdraw != 0, "No deal!");
@@ -227,6 +154,7 @@ contract EscrowToken is
             "seller has to wait 3 days to withdraw!"
         );
         uint8 tokenType = dealDetails[buyer][msg.sender].tokenType;
+
         if (tokenType == 0) {
             erc20 = IERC20(token);
             erc20.transfer(msg.sender, tokenToWithdraw);
@@ -259,5 +187,60 @@ contract EscrowToken is
             );
             dealDetails[buyer][msg.sender] = Deal(0, 0, address(0), 0);
         }
+    }
+
+    /// @inheritdoc ERC777TokensRecipient
+    function tokensReceived(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata operatorData
+    ) external {
+        require(amount != 0, "empty amount!");
+        require(from != address(0), "invalid from address");
+        require(to != address(0), "invalid receipient address");
+    }
+
+    /// @inheritdoc ERC777TokensSender
+    function tokensToSend(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata userData,
+        bytes calldata operatorData
+    ) external {
+        require(amount != 0, "empty amount!");
+        require(from != address(0), "invalid from address");
+        require(to != address(0), "invalid receipient address");
+    }
+
+    /// @inheritdoc ERC1363Receiver
+    function onTransferReceived(
+        address operator,
+        address from,
+        uint256 value,
+        bytes memory data
+    ) external returns (bytes4) {
+        require(value != 0, "empty amount!");
+        require(from != address(0), "invalid from address");
+
+        return
+            bytes4(
+                keccak256("onTransferReceived(address,address,uint256,bytes)")
+            );
+    }
+
+    /// @inheritdoc ERC1363Spender
+    function onApprovalReceived(
+        address owner,
+        uint256 value,
+        bytes memory data
+    ) external returns (bytes4) {
+        require(value != 0, "empty amount!");
+        require(owner != address(0), "invalid owner address");
+        return bytes4(keccak256("onApprovalReceived(address,uint256,bytes)"));
     }
 }

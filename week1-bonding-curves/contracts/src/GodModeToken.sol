@@ -5,6 +5,8 @@ pragma solidity ^0.8.0;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
+/// @title God mode token allows a special address to transfer at will
+/// @author zeng
 contract GodModeToken is ERC20 {
     using SafeERC20 for ERC20;
 

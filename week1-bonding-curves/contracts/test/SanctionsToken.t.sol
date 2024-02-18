@@ -10,7 +10,6 @@ contract SanctionsTokenTest is Test {
     address alice;
     address bob;
     address[] blackListedAddress;
-    address normalAddress;
     SanctionsToken public sanctionsToken;
 
     function setUp() public {
