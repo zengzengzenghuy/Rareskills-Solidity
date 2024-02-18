@@ -20,6 +20,12 @@ contract GodModeToken is ERC20 {
         _specialAddress = specialAddress;
     }
 
+    /// @notice transfer token from `from` to `to`
+    /// @dev ERC20 transferFrom with specialAddress check, specialAddress have max allowance from spender
+    /// @param from address to transfer the token from
+    /// @param to address to transfer the token to
+    /// @param amount amount of token to transfer from `from` to `to`
+    /// @return indicate whether the transfer is success or fail
     function transferFrom(
         address from,
         address to,
@@ -35,12 +41,20 @@ contract GodModeToken is ERC20 {
         }
     }
 
+    /// @notice mint token to account
+    /// @dev mint `amount` of token to `account`
+    /// @param account account to mint to
+    /// @param amount amount of token to mint to the account
     function mint(address account, uint256 amount) external {
         require(account != address(0), "cannot mint to 0 address");
         require(amount != 0, "mint nothing");
         _mint(account, amount);
     }
 
+    /// @notice burn token from account
+    /// @dev burn `amount` of token from `account`
+    /// @param account account to burn from
+    /// @param amount amount of token to burn from the account
     function burn(address account, uint256 amount) external {
         require(account != address(0), "cannot mint to 0 address");
         require(amount != 0, "mint nothing");

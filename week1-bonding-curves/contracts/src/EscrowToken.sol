@@ -54,12 +54,6 @@ contract EscrowToken is
     ERC1363Receiver,
     ERC1363Spender
 {
-    // allows different standard of ERC20
-    // ERC777
-    // ERC1363
-    // check if this contract has allowance from buyer
-    // check time is 3 days
-    // check if approve or transfer
 
     IERC20 erc20;
     ERC777 erc777;
