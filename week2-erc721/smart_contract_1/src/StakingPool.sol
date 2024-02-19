@@ -32,7 +32,7 @@ contract StakingPool {
         stakedToken.safeTransferFrom(msg.sender, address(this), tokenId);
         rewardToken.mint(msg.sender, 1e18);
 
-        uint256 amountStaked = userInfo[msg.sender].amountStaked;
+         uint256 amountStaked = userInfo[msg.sender].amountStaked;
 
     // update the totalRewards since last update
         if (amountStaked != 0) {
@@ -43,7 +43,8 @@ contract StakingPool {
                     1e18) / 1 days);
         }
         userInfo[msg.sender].lastUpdated = block.timestamp;
-        userInfo[msg.sender].tokenIds[amountStaked] = tokenId;
+       
+        userInfo[msg.sender].tokenIds.push(tokenId);
         userInfo[msg.sender].amountStaked += amountStaked + 1;
     }
 
@@ -62,13 +63,14 @@ contract StakingPool {
                     userInfo[msg.sender].tokenIds[j] = userInfo[msg.sender]
                         .tokenIds[lastIndex];
                     userInfo[msg.sender].tokenIds[lastIndex] = 0;
-                    userInfo[msg.sender].amountStaked -= 1;
+              
                     stakedToken.safeTransferFrom(
                         address(this),
                         msg.sender,
                         tokenId[i]
                     );
                     withdrawAllRewardToken(msg.sender);
+                          userInfo[msg.sender].amountStaked -= 1;
                 }
             }
         }
@@ -91,4 +93,11 @@ contract StakingPool {
         userInfo[msg.sender].lastUpdated = block.timestamp;
         rewardToken.mint(msg.sender, totalReward);
     }
+
+        /// @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
+    ///  unless throwing
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data)
+        external
+        returns(bytes4){
+            return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));}
 }

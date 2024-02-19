@@ -16,17 +16,20 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
     BitMaps.BitMap private _bitmapList;
     bytes32 public immutable merkleRoot;
     uint256 private immutable _discount = 10; // discount for addresses in a merkle tree
-
+    uint256 public totalSupply;
+    uint256 constant MAX_SUPPLY = 1000;
     constructor(
         string memory name_,
         string memory symbol_,
         bytes32 merkleRoot_
     ) ERC721(name_, symbol_) {
         merkleRoot = merkleRoot_;
-        _mint(msg.sender, 1000);
         _setDefaultRoyalty(msg.sender, 250); // set 2.5% of reward rate
     }
 
+    // function getRoyaltyInfo() public returns(address, uint96){
+    //     address receiver = _defaultRoyaltyInfo.receiver;
+    // }
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC721, ERC2981) returns (bool) {
@@ -35,25 +38,33 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
 
     function mintWithDiscount(
         bytes32[] calldata proof,
-        uint256 index,
-        uint256 tokenId
+        uint256 index
     ) public payable {
         require(!_bitmapList.get(index), "Already claimed!");
 
         _verifyProof(proof, index, msg.sender);
 
         _bitmapList.set(index);
-        safeMint(msg.sender, tokenId);
-        payable(address(this)).transfer((msg.value * _discount) / 100);
+        totalSupply += 1;
+        
+        safeMint(msg.sender);
+        payable(msg.sender).transfer((msg.value * _discount) / 100);
     }
 
-    function safeMint(address to, uint256 tokenId) public payable {
-        _safeMint(to, tokenId, "");
+
+
+    function safeMint(address to) public payable {
+        totalSupply += 1;
+        require(totalSupply<= MAX_SUPPLY, "max supply reached!");
+        _safeMint(to, totalSupply, "");
     }
 
     function withdrawFunds() external onlyOwner {
-        address owner = owner();
-        payable(owner).transfer(balanceOf(address(this)));
+        address contractOwner = owner();
+        uint256 ethAmount = address(this).balance;
+        require(ethAmount>0, "eth");
+         (bool sent, bytes memory data) = contractOwner.call{value: ethAmount}("");
+        require(sent, "Failed to send Ether");
     }
 
     function _verifyProof(
@@ -62,7 +73,7 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
         address addr
     ) private view {
         bytes32 leaf = keccak256(
-            bytes.concat(keccak256(abi.encode(index, addr)))
+            bytes.concat(keccak256(abi.encode(addr, index)))
         );
         bool result = MerkleProof.verify(proof, merkleRoot, leaf);
         require(result, "Proof is wrong");
