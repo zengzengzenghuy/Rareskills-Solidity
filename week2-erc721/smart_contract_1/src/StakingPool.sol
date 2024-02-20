@@ -11,9 +11,9 @@ contract StakingPool {
 
     struct UserInfo {
         uint256 lastUpdated;
-        uint256 amountStaked;
-        uint256 totalRewards;
-        uint256[] tokenIds;
+        uint256 amountStaked; // amount of NFT staked
+        uint256 totalRewards; // total Rewards that can be withdrawn
+        uint256[] tokenIds;  // tokenIds that is deposited by user
     }
 
     mapping(address user => UserInfo userInfo) userInfo;
@@ -27,18 +27,19 @@ contract StakingPool {
         stakedToken = StakedToken(staked_);
     }
 
-    function depositStakeToken(uint256 tokenId) public {
+    /// @notice deposit StakeToken(NFT) 
+    /// @param tokenId tokenId to deposit 
+    function depositStakeToken(uint256 tokenId) external {
         require(
             stakedToken.ownerOf(tokenId) == msg.sender,
             "msg.sender is not the owner of tokenId!"
         );
 
         stakedToken.safeTransferFrom(msg.sender, address(this), tokenId);
-        // rewardToken.mint(msg.sender, 1e18);
 
-         uint256 amountStaked = userInfo[msg.sender].amountStaked;
+        uint256 amountStaked = userInfo[msg.sender].amountStaked;
 
-    // update the totalRewards since last update
+        // update the totalRewards since last update
         if (amountStaked != 0) {
             userInfo[msg.sender].totalRewards +=
                 amountStaked *
@@ -47,7 +48,6 @@ contract StakingPool {
                     1e18) / 1 days);
         }
         userInfo[msg.sender].lastUpdated = block.timestamp;
-       
         userInfo[msg.sender].tokenIds.push(tokenId);
         userInfo[msg.sender].amountStaked += 1;
 
@@ -58,8 +58,9 @@ contract StakingPool {
     /// @dev
     /// @param tokenId an array of tokenId to be withdrawn from staker.
 
-    function withdrawStakeToken(uint256[] calldata tokenId) public {
+    function withdrawStakeToken(uint256[] calldata tokenId) external {
         require(tokenId.length != 0, "no staked token to withdraw!");
+
         for (uint256 i = 0; i < tokenId.length; i++) {
             for (uint256 j = 0; j < userInfo[msg.sender].tokenIds.length; j++) {
                 if (userInfo[msg.sender].tokenIds[j] == tokenId[i]) {
@@ -74,7 +75,8 @@ contract StakingPool {
                         address(this),
                         msg.sender,
                         tokenId[i]
-                    );
+                    ); // transfer NFT back to user
+
                     withdrawAllRewardToken(msg.sender);
                     
                     userInfo[msg.sender].amountStaked -= 1;
@@ -85,6 +87,8 @@ contract StakingPool {
         }
     }
 
+    /// @notice withdraw all available reward token that owner has accumulated
+    /// @param owner address to withdraw
     function withdrawAllRewardToken(address owner) public {
         require(msg.sender == owner, "only owner can withdraw");
         require(
@@ -105,8 +109,6 @@ contract StakingPool {
         emit withdrawRewardToken(msg.sender, totalReward, block.timestamp);
     }
 
-        /// @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
-    ///  unless throwing
     function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data)
         external
         returns(bytes4){
