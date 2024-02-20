@@ -18,6 +18,10 @@ contract StakingPool {
 
     mapping(address user => UserInfo userInfo) userInfo;
 
+    event depositNFT(address indexed depositor, uint256 indexed tokenId, uint256 indexed blockTimestamp);
+    event withdrawNFT(address indexed withdrawer, uint256 indexed tokenId, uint256 blockTimestamp);
+    event withdrawRewardToken(address indexed withdrawer, uint256 amount, uint256 indexed blockTimestamp);
+
     constructor(address reward_, address staked_) {
         rewardToken = RewardToken(reward_);
         stakedToken = StakedToken(staked_);
@@ -30,7 +34,7 @@ contract StakingPool {
         );
 
         stakedToken.safeTransferFrom(msg.sender, address(this), tokenId);
-        rewardToken.mint(msg.sender, 1e18);
+        // rewardToken.mint(msg.sender, 1e18);
 
          uint256 amountStaked = userInfo[msg.sender].amountStaked;
 
@@ -45,7 +49,9 @@ contract StakingPool {
         userInfo[msg.sender].lastUpdated = block.timestamp;
        
         userInfo[msg.sender].tokenIds.push(tokenId);
-        userInfo[msg.sender].amountStaked += amountStaked + 1;
+        userInfo[msg.sender].amountStaked += 1;
+
+        emit depositNFT(msg.sender, tokenId, block.timestamp);
     }
 
     /// @notice withdraw staked NFT token(s) and get NFT and rewarded ERC20 token back
@@ -70,14 +76,17 @@ contract StakingPool {
                         tokenId[i]
                     );
                     withdrawAllRewardToken(msg.sender);
-                          userInfo[msg.sender].amountStaked -= 1;
+                    
+                    userInfo[msg.sender].amountStaked -= 1;
+
+                    emit withdrawNFT(msg.sender, tokenId[i], block.timestamp);
                 }
             }
         }
     }
 
     function withdrawAllRewardToken(address owner) public {
-        require(owner != address(0), "owner is not a valid address!");
+        require(msg.sender == owner, "only owner can withdraw");
         require(
             userInfo[owner].amountStaked != 0,
             "Owner don't have balance in staking pool!"
@@ -92,6 +101,8 @@ contract StakingPool {
         userInfo[msg.sender].totalRewards = 0;
         userInfo[msg.sender].lastUpdated = block.timestamp;
         rewardToken.mint(msg.sender, totalReward);
+
+        emit withdrawRewardToken(msg.sender, totalReward, block.timestamp);
     }
 
         /// @return `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
