@@ -4,6 +4,10 @@ pragma solidity ^0.8.13;
 import {RewardToken} from "./RewardToken.sol";
 import {StakedToken} from "./StakedToken.sol";
 
+/// @title Staking Pool
+/// @author zeng
+/// @dev Receive staked Token (NFT), and mint reward Token (ERC20) for depositor
+/// @dev A staked Token can earn 20 reward token per day
 contract StakingPool {
     RewardToken rewardToken;
     StakedToken stakedToken;
@@ -13,22 +17,34 @@ contract StakingPool {
         uint256 lastUpdated;
         uint256 amountStaked; // amount of NFT staked
         uint256 totalRewards; // total Rewards that can be withdrawn
-        uint256[] tokenIds;  // tokenIds that is deposited by user
+        uint256[] tokenIds; // tokenIds that is deposited by user
     }
 
     mapping(address user => UserInfo userInfo) userInfo;
 
-    event depositNFT(address indexed depositor, uint256 indexed tokenId, uint256 indexed blockTimestamp);
-    event withdrawNFT(address indexed withdrawer, uint256 indexed tokenId, uint256 blockTimestamp);
-    event withdrawRewardToken(address indexed withdrawer, uint256 amount, uint256 indexed blockTimestamp);
+    event depositNFT(
+        address indexed depositor,
+        uint256 indexed tokenId,
+        uint256 indexed blockTimestamp
+    );
+    event withdrawNFT(
+        address indexed withdrawer,
+        uint256 indexed tokenId,
+        uint256 blockTimestamp
+    );
+    event withdrawRewardToken(
+        address indexed withdrawer,
+        uint256 amount,
+        uint256 indexed blockTimestamp
+    );
 
     constructor(address reward_, address staked_) {
         rewardToken = RewardToken(reward_);
         stakedToken = StakedToken(staked_);
     }
 
-    /// @notice deposit StakeToken(NFT) 
-    /// @param tokenId tokenId to deposit 
+    /// @notice deposit StakeToken(NFT)
+    /// @param tokenId tokenId to deposit
     function depositStakeToken(uint256 tokenId) external {
         require(
             stakedToken.ownerOf(tokenId) == msg.sender,
@@ -70,7 +86,7 @@ contract StakingPool {
                     userInfo[msg.sender].tokenIds[j] = userInfo[msg.sender]
                         .tokenIds[lastIndex];
                     userInfo[msg.sender].tokenIds[lastIndex] = 0;
-              
+
                     stakedToken.safeTransferFrom(
                         address(this),
                         msg.sender,
@@ -78,7 +94,7 @@ contract StakingPool {
                     ); // transfer NFT back to user
 
                     withdrawAllRewardToken(msg.sender);
-                    
+
                     userInfo[msg.sender].amountStaked -= 1;
 
                     emit withdrawNFT(msg.sender, tokenId[i], block.timestamp);
@@ -109,8 +125,15 @@ contract StakingPool {
         emit withdrawRewardToken(msg.sender, totalReward, block.timestamp);
     }
 
-    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data)
-        external
-        returns(bytes4){
-            return bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"));}
+    function onERC721Received(
+        address _operator,
+        address _from,
+        uint256 _tokenId,
+        bytes calldata _data
+    ) external returns (bytes4) {
+        return
+            bytes4(
+                keccak256("onERC721Received(address,address,uint256,bytes)")
+            );
+    }
 }

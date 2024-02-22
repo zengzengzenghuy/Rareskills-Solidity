@@ -10,9 +10,9 @@ import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/structs/BitMaps.sol";
 
-
-/// @title StakedToken is the NFT token contract that can be used to stake into staking pool and earn reward in return
+/// @title StakedToken
 /// @author zeng
+/// @dev  the NFT token contract that can be used to stake into staking pool and earn reward in return
 contract StakedToken is ERC721, ERC2981, Ownable2Step {
     using BitMaps for BitMaps.BitMap;
 
@@ -20,7 +20,7 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
     bytes32 public immutable merkleRoot;
     uint256 public totalSupply;
     uint256 private immutable _discount = 10; // discount for addresses in a merkle tree
-    uint256 constant MAX_SUPPLY = 1000;  // cannot mint more than 1000 tokens
+    uint256 constant MAX_SUPPLY = 1000; // cannot mint more than 1000 tokens
 
     constructor(
         string memory name_,
@@ -30,7 +30,6 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
         merkleRoot = merkleRoot_;
         _setDefaultRoyalty(msg.sender, 250); // set 2.5% of reward rate
     }
-
 
     function supportsInterface(
         bytes4 interfaceId
@@ -55,13 +54,12 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
         payable(msg.sender).transfer((msg.value * _discount) / 100); // transfer the discount back to msg.sender
     }
 
-
     /// @notice safe mint NFT to `to` address
     /// @dev call by normal NFT buyer or mintWithDiscount function
     /// @param to the address to mint NFT to
     function safeMint(address to) public payable {
         totalSupply += 1;
-        require(totalSupply<= MAX_SUPPLY, "max supply reached!");
+        require(totalSupply <= MAX_SUPPLY, "max supply reached!");
         _safeMint(to, totalSupply, "");
     }
 
@@ -70,7 +68,9 @@ contract StakedToken is ERC721, ERC2981, Ownable2Step {
     function withdrawFunds() external onlyOwner {
         address contractOwner = owner();
         uint256 ethAmount = address(this).balance;
-         (bool sent, bytes memory data) = contractOwner.call{value: ethAmount}("");
+        (bool sent, bytes memory data) = contractOwner.call{value: ethAmount}(
+            ""
+        );
         require(sent, "Failed to send Ether");
     }
 

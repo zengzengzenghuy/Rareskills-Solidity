@@ -5,8 +5,9 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
 import {NFT} from "./NFT.sol";
 
-/// @title PrimeNFTFilter filter the tokenId that is prime number and return total prime count owned by an address
+/// @title PrimeNFTFilter
 /// @author zeng
+/// @dev Filter the tokenId that is prime number and return total prime count owned by an address
 contract PrimeNFTFilter {
     NFT nfttoken;
 
@@ -16,7 +17,7 @@ contract PrimeNFTFilter {
 
     /// @notice find the prime count of an address
     /// @param owner the address to find
-    /// @return total amount of token Id owned by owner that is prime number 
+    /// @return total amount of token Id owned by owner that is prime number
     function findPrimeCount(address owner) public view returns (uint256) {
         uint256 totalBalance = nfttoken.balanceOf(owner);
         uint256 primeCount;

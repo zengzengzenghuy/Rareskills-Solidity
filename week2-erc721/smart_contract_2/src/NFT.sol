@@ -10,9 +10,12 @@ contract NFT is ERC721Enumerable, Ownable2Step {
         string memory symbol_
     ) ERC721(name_, symbol_) {}
 
-    function mint(address receiver, uint256[] calldata tokenIds) public onlyOwner {
+    function mint(
+        address receiver,
+        uint256[] calldata tokenIds
+    ) public onlyOwner {
         for (uint256 i = 0; i < tokenIds.length; i++) {
-            require(tokenIds[i]<=100, "token id exceed 100!");
+            require(tokenIds[i] <= 100, "token id exceed 100!");
             super._safeMint(receiver, tokenIds[i]);
         }
     }
