@@ -1,0 +1,181 @@
+Mutation testing report:
+Number of mutations:    16
+Killed:                 11 / 16
+
+Mutations:
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 17
+    Result: Lived
+    Original line:
+                     require(tokenIds[i] <= 100, "token id exceed 100!");
+
+    Mutated line:
+                     require(tokenIds[i] < 100, "token id exceed 100!");
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 16
+    Result: Killed
+    Original line:
+                 for (uint256 i = 0; i < tokenIds.length; i++) {
+
+    Mutated line:
+                 for (uint256 i = 0; i <= tokenIds.length; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 17
+    Result: Killed
+    Original line:
+                     require(tokenIds[i] <= 100, "token id exceed 100!");
+
+    Mutated line:
+                     require(tokenIds[i] > 100, "token id exceed 100!");
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 16
+    Result: Killed
+    Original line:
+                 for (uint256 i = 0; i < tokenIds.length; i++) {
+
+    Mutated line:
+                 for (uint256 i = 0; i >= tokenIds.length; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 10
+    Result: Error
+    Original line:
+             ) ERC721(name_, symbol_) {}
+
+    Mutated line:
+             )  {}
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/NFT.sol
+    Line nr: 15
+    Result: Lived
+    Original line:
+             ) public onlyOwner {
+
+    Mutated line:
+             ) public  {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 23
+    Result: Killed
+    Original line:
+                 for (uint256 i = 0; i < totalBalance; i++) {
+
+    Mutated line:
+                 for (uint256 i = 0; i <= totalBalance; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 36
+    Result: Lived
+    Original line:
+                 if (tokenId <= 1) return false;
+
+    Mutated line:
+                 if (tokenId < 1) return false;
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 38
+    Result: Killed
+    Original line:
+                     if (tokenId % i == 0) return false;
+
+    Mutated line:
+                     if (tokenId % i != 0) return false;
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 37
+    Result: Lived
+    Original line:
+                 for (uint256 i = 2; i * i <= tokenId; i++) {
+
+    Mutated line:
+                 for (uint256 i = 2; i * i < tokenId; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 23
+    Result: Killed
+    Original line:
+                 for (uint256 i = 0; i < totalBalance; i++) {
+
+    Mutated line:
+                 for (uint256 i = 0; i >= totalBalance; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 36
+    Result: Killed
+    Original line:
+                 if (tokenId <= 1) return false;
+
+    Mutated line:
+                 if (tokenId > 1) return false;
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 38
+    Result: Killed
+    Original line:
+                     if (tokenId % i == 0) return false;
+
+    Mutated line:
+                     if (tokenId % i != 0) return false;
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 37
+    Result: Killed
+    Original line:
+                 for (uint256 i = 2; i * i <= tokenId; i++) {
+
+    Mutated line:
+                 for (uint256 i = 2; i * i > tokenId; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 37
+    Result: Killed
+    Original line:
+                 for (uint256 i = 2; i * i <= tokenId; i++) {
+
+    Mutated line:
+                 for (uint256 i = 2; i / i <= tokenId; i++) {
+
+
+Mutation:
+    File: /home/zh/Desktop/Projects/Rareskills-Solidity/week2-erc721/smart_contract_2/src/PrimeNFTFilter.sol
+    Line nr: 26
+    Result: Killed
+    Original line:
+                         primeCount += 1;
+
+    Mutated line:
+                         primeCount -= 1;
+
+
