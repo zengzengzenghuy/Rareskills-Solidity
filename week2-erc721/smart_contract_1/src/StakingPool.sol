@@ -131,6 +131,7 @@ contract StakingPool {
         uint256 _tokenId,
         bytes calldata _data
     ) external returns (bytes4) {
+        require(msg.sender == address(stakedToken), "msg.sender is not staked token contract!" );
         return
             bytes4(
                 keccak256("onERC721Received(address,address,uint256,bytes)")
